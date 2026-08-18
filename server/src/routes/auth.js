@@ -48,3 +48,19 @@ authRouter.get("/me", requireAuth, async (req, res) => {
   });
   res.json(user);
 });
+
+const updateMeSchema = z.object({
+  name: z.string().min(1),
+});
+
+authRouter.patch("/me", requireAuth, async (req, res) => {
+  const parsed = updateMeSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Datos inválidos" });
+
+  const user = await prisma.user.update({
+    where: { id: req.user.sub },
+    data: { name: parsed.data.name },
+    select: { id: true, name: true, email: true, role: true },
+  });
+  res.json(user);
+});

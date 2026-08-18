@@ -8,6 +8,7 @@ import { customersRouter } from "./routes/customers.js";
 import { ordersRouter } from "./routes/orders.js";
 import { shipmentsRouter } from "./routes/shipments.js";
 import { dashboardRouter } from "./routes/dashboard.js";
+import { usersRouter } from "./routes/users.js";
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use("/api/customers", customersRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/shipments", shipmentsRouter);
 app.use("/api/dashboard", dashboardRouter);
+app.use("/api/users", usersRouter);
 
 app.use((req, res) => res.status(404).json({ error: "Ruta no encontrada" }));
 

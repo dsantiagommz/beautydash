@@ -1,11 +1,25 @@
-import { useState } from "react";
-import { Menu, Search, Bell, ChevronDown, Plus, Package } from "lucide-react";
-
-const periods = ["Hoy", "Última semana", "Este mes", "Este trimestre"];
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Menu, Search, Bell, Plus, Package } from "lucide-react";
+import { api } from "../lib/api";
 
 export default function Header({ onOpenSidebar, title, subtitle, onNewOrder }) {
-  const [period, setPeriod] = useState("Este mes");
-  const [periodOpen, setPeriodOpen] = useState(false);
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [stockAlerts, setStockAlerts] = useState(0);
+
+  useEffect(() => {
+    api.dashboard
+      .summary()
+      .then((s) => setStockAlerts(s.stockAlerts))
+      .catch(() => {});
+  }, []);
+
+  function handleSearchSubmit(e) {
+    e.preventDefault();
+    if (!query.trim()) return;
+    navigate(`/inventario?q=${encodeURIComponent(query.trim())}`);
+  }
 
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur-md">
@@ -27,58 +41,41 @@ export default function Header({ onOpenSidebar, title, subtitle, onNewOrder }) {
           )}
         </div>
 
-        <div className="order-last basis-full lg:order-none lg:ml-4 lg:basis-auto lg:flex-1">
+        <form
+          onSubmit={handleSearchSubmit}
+          className="order-last basis-full lg:order-none lg:ml-4 lg:basis-auto lg:flex-1"
+        >
           <div className="relative max-w-md">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar por SKU, producto o salón... (Ctrl+K)"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar producto o SKU en inventario... (Enter)"
               className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-[13px] text-slate-700 placeholder:text-slate-400 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100"
             />
           </div>
-        </div>
+        </form>
 
         <div className="ml-auto flex items-center gap-2.5 sm:gap-3">
-          <div className="relative hidden sm:block">
-            <button
-              onClick={() => setPeriodOpen((v) => !v)}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-600 hover:bg-slate-50"
-            >
-              {period}
-              <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-            </button>
-            {periodOpen && (
-              <div className="absolute right-0 z-30 mt-1.5 w-44 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/5">
-                {periods.map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => {
-                      setPeriod(p);
-                      setPeriodOpen(false);
-                    }}
-                    className={`block w-full px-3 py-2 text-left text-[13px] hover:bg-slate-50 ${
-                      p === period ? "font-semibold text-violet-600" : "text-slate-600"
-                    }`}
-                  >
-                    {p}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           <button
+            onClick={() => navigate("/inventario")}
             className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-100"
-            aria-label="Notificaciones"
+            aria-label="Alertas de stock"
           >
             <Bell className="h-[18px] w-[18px]" />
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9.5px] font-bold text-white ring-2 ring-white">
-              3
-            </span>
+            {stockAlerts > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9.5px] font-bold text-white ring-2 ring-white">
+                {stockAlerts > 9 ? "9+" : stockAlerts}
+              </span>
+            )}
           </button>
 
           <div className="hidden items-center gap-2 md:flex">
-            <button className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-600 hover:bg-slate-50">
+            <button
+              onClick={() => navigate("/inventario")}
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-600 hover:bg-slate-50"
+            >
               <Package className="h-4 w-4" />
               Reabastecer
             </button>

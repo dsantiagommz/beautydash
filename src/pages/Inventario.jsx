@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Search, MoreHorizontal, X } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import { api } from "../lib/api";
@@ -165,7 +165,8 @@ export default function Inventario() {
   const [products, setProducts] = useState(null);
   const [categories, setCategories] = useState([]);
   const [error, setError] = useState("");
-  const [query, setQuery] = useState("");
+  const [searchParams] = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [categoryId, setCategoryId] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
 

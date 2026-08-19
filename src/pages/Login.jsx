@@ -37,7 +37,7 @@ export default function Login() {
       className="flex min-h-screen items-center justify-center px-4"
     >
       <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center gap-4">
+        <div className="mb-8 flex flex-col items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-rose-500 shadow-lg shadow-violet-600/25">
             <Sparkles className="h-6 w-6 text-white" strokeWidth={2.25} />
           </span>
@@ -45,9 +45,6 @@ export default function Login() {
             <p className="font-display text-xl italic text-slate-900">BeautySupply</p>
             <p className="text-[11px] font-semibold tracking-[0.2em] text-violet-600">PRO</p>
           </div>
-          <p className="max-w-[240px] text-center font-display text-[15px] leading-snug text-slate-500">
-            El inventario de tu bodega, sin sorpresas.
-          </p>
         </div>
 
         <form

@@ -1,4 +1,5 @@
 import { Router } from "express";
+import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "../db.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
@@ -37,4 +38,23 @@ usersRouter.put("/:id", requireRole("ADMIN"), async (req, res) => {
     }
     throw err;
   }
+});
+
+const resetPasswordSchema = z.object({
+  newPassword: z.string().min(6),
+});
+
+usersRouter.put("/:id/password", requireRole("ADMIN"), async (req, res) => {
+  const parsed = resetPasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: "La contraseña debe tener al menos 6 caracteres" });
+  }
+
+  const passwordHash = await bcrypt.hash(parsed.data.newPassword, 10);
+  await prisma.user.update({
+    where: { id: req.params.id },
+    data: { passwordHash },
+  });
+
+  res.json({ ok: true });
 });

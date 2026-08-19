@@ -37,6 +37,8 @@ export const api = {
   users: {
     list: () => request("/users"),
     update: (id, data) => request(`/users/${id}`, { method: "PUT", body: data }),
+    resetPassword: (id, newPassword) =>
+      request(`/users/${id}/password`, { method: "PUT", body: { newPassword } }),
   },
 
   products: {

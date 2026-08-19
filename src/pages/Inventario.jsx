@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Search, MoreHorizontal, X } from "lucide-react";
 import PageHeader from "../components/PageHeader";
 import { api } from "../lib/api";
+import { categoryColor } from "../lib/categoryColors";
 
 function stockBadge(p) {
   if (p.stock === 0) return "bg-rose-900/90 text-white ring-1 ring-inset ring-rose-900";
@@ -234,24 +235,27 @@ export default function Inventario() {
             <button
               onClick={() => setCategoryId("")}
               className={`rounded-full px-3 py-1.5 text-[12.5px] font-medium transition ${
-                categoryId === "" ? "bg-violet-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                categoryId === "" ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
               Todas
             </button>
-            {categories.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setCategoryId(c.id)}
-                className={`rounded-full px-3 py-1.5 text-[12.5px] font-medium transition ${
-                  categoryId === c.id
-                    ? "bg-violet-600 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {c.name}
-              </button>
-            ))}
+            {categories.map((c) => {
+              const color = categoryColor(c.name);
+              const active = categoryId === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setCategoryId(c.id)}
+                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-medium transition ${
+                    active ? color.chipActive : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-white/80" : color.dot}`} />
+                  {c.name}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -286,7 +290,12 @@ export default function Inventario() {
                       <>
                         <td className="px-5 py-3.5 font-medium text-slate-800 sm:px-6">{p.name}</td>
                         <td className="px-3 py-3.5 font-mono text-[12.5px] text-slate-500">{p.sku}</td>
-                        <td className="px-3 py-3.5 text-slate-500">{p.category.name}</td>
+                        <td className="px-3 py-3.5 text-slate-500">
+                          <span className="flex items-center gap-1.5">
+                            <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${categoryColor(p.category.name).dot}`} />
+                            {p.category.name}
+                          </span>
+                        </td>
                         <td className="px-3 py-3.5 text-right text-slate-600">
                           {p.stock} <span className="text-slate-400">/ min {p.minStock}</span>
                         </td>

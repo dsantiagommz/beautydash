@@ -9,8 +9,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { api } from "../lib/api";
-
-const PALETTE = ["#7C3AED", "#F43F5E", "#0EA5E9", "#F59E0B", "#10B981", "#EC4899"];
+import { categoryColor } from "../lib/categoryColors";
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
@@ -42,7 +41,7 @@ export default function SalesChart() {
       .then((res) =>
         setChart({
           data: res.data,
-          series: res.series.map((s, i) => ({ ...s, color: PALETTE[i % PALETTE.length] })),
+          series: res.series.map((s) => ({ ...s, color: categoryColor(s.name).hex })),
         })
       )
       .catch((e) => setError(e.message));

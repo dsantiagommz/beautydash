@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Pencil } from "lucide-react";
 import { api } from "../lib/api";
+import { categoryColor } from "../lib/categoryColors";
 
 const inputClass =
   "w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] text-slate-700 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100";
@@ -114,7 +115,15 @@ export default function ProductDetail() {
 
         {!editing && (
           <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
-            <Field label="Categoría" value={product.category.name} />
+            <Field
+              label="Categoría"
+              value={
+                <span className="inline-flex items-center gap-1.5">
+                  <span className={`h-1.5 w-1.5 rounded-full ${categoryColor(product.category.name).dot}`} />
+                  {product.category.name}
+                </span>
+              }
+            />
             <Field label="Precio" value={`$${Number(product.price).toFixed(2)}`} />
             <Field label="Unidad" value={product.unit} />
             <Field label="Stock actual" value={product.stock} />

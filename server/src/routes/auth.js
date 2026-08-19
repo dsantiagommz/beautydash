@@ -64,3 +64,31 @@ authRouter.patch("/me", requireAuth, async (req, res) => {
   });
   res.json(user);
 });
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(6),
+});
+
+authRouter.patch("/password", requireAuth, async (req, res) => {
+  const parsed = changePasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: "La nueva contraseña debe tener al menos 6 caracteres" });
+  }
+
+  const { currentPassword, newPassword } = parsed.data;
+  const user = await prisma.user.findUnique({ where: { id: req.user.sub } });
+
+  const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!valid) {
+    return res.status(401).json({ error: "La contraseña actual es incorrecta" });
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({
+    where: { id: req.user.sub },
+    data: { passwordHash },
+  });
+
+  res.json({ ok: true });
+});

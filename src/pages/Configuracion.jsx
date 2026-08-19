@@ -102,6 +102,86 @@ function ProfileSection() {
   );
 }
 
+function PasswordSection() {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+
+  const mismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
+  const canSubmit =
+    currentPassword.length > 0 && newPassword.length >= 6 && newPassword === confirmPassword;
+
+  async function handleSave(e) {
+    e.preventDefault();
+    setError("");
+    setSaving(true);
+    try {
+      await api.changePassword({ currentPassword, newPassword });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Section title="Contraseña" subtitle="Cambia la contraseña de tu cuenta">
+      {error && (
+        <p className="rounded-lg bg-rose-50 px-3 py-2 text-[12.5px] font-medium text-rose-600">
+          {error}
+        </p>
+      )}
+      <form onSubmit={handleSave} className="space-y-4">
+        <Field label="Contraseña actual">
+          <input
+            type="password"
+            className={inputClass}
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            autoComplete="current-password"
+          />
+        </Field>
+        <Field label="Contraseña nueva">
+          <input
+            type="password"
+            className={inputClass}
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            autoComplete="new-password"
+          />
+        </Field>
+        <Field label="Confirmar contraseña nueva">
+          <input
+            type="password"
+            className={inputClass}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            autoComplete="new-password"
+          />
+          {mismatch && (
+            <p className="mt-1 text-[11.5px] text-rose-600">Las contraseñas no coinciden</p>
+          )}
+        </Field>
+        <button
+          type="submit"
+          disabled={!canSubmit || saving}
+          className="rounded-lg bg-gradient-to-r from-violet-600 to-violet-700 px-4 py-2 text-[13px] font-semibold text-white shadow-sm shadow-violet-600/25 hover:from-violet-500 hover:to-violet-600 disabled:opacity-50"
+        >
+          {saving ? "Guardando..." : saved ? "Contraseña actualizada ✓" : "Cambiar contraseña"}
+        </button>
+      </form>
+    </Section>
+  );
+}
+
 function TeamRow({ user, canEdit, onUpdated }) {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ name: user.name, email: user.email, role: user.role });
@@ -252,6 +332,8 @@ export default function Configuracion() {
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <ProfileSection />
+
+        <PasswordSection />
 
         <Section title="Negocio" subtitle="Datos generales (próximamente editable)">
           <Field label="Nombre del negocio">

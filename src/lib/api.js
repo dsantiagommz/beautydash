@@ -32,6 +32,7 @@ export const api = {
   login: (email, password) => request("/auth/login", { method: "POST", body: { email, password } }),
   me: () => request("/auth/me"),
   updateMe: (data) => request("/auth/me", { method: "PATCH", body: data }),
+  changePassword: (data) => request("/auth/password", { method: "PATCH", body: data }),
 
   users: {
     list: () => request("/users"),

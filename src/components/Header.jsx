@@ -1,12 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu, Search, Bell, Plus, Package } from "lucide-react";
 import { api } from "../lib/api";
 
-export default function Header({ onOpenSidebar, title, subtitle, onNewOrder }) {
+export default function Header({ onOpenSidebar, title, subtitle, onNewOrder, onRestock }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [stockAlerts, setStockAlerts] = useState(0);
+  const searchRef = useRef(null);
 
   useEffect(() => {
     api.dashboard
@@ -15,9 +18,40 @@ export default function Header({ onOpenSidebar, title, subtitle, onNewOrder }) {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (!query.trim()) {
+      setSuggestions([]);
+      return;
+    }
+    const timeout = setTimeout(() => {
+      api.products
+        .list({ search: query.trim() })
+        .then((results) => setSuggestions(results.slice(0, 6)))
+        .catch(() => setSuggestions([]));
+    }, 200);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setSuggestionsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  function goToProduct(product) {
+    setSuggestionsOpen(false);
+    setQuery("");
+    navigate(`/inventario/${product.id}`);
+  }
+
   function handleSearchSubmit(e) {
     e.preventDefault();
     if (!query.trim()) return;
+    setSuggestionsOpen(false);
     navigate(`/inventario?q=${encodeURIComponent(query.trim())}`);
   }
 
@@ -42,19 +76,52 @@ export default function Header({ onOpenSidebar, title, subtitle, onNewOrder }) {
         </div>
 
         <form
+          ref={searchRef}
           onSubmit={handleSearchSubmit}
-          className="order-last basis-full lg:order-none lg:ml-4 lg:basis-auto lg:flex-1"
+          className="relative order-last basis-full lg:order-none lg:ml-4 lg:basis-auto lg:flex-1"
         >
           <div className="relative max-w-md">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setSuggestionsOpen(true);
+              }}
+              onFocus={() => setSuggestionsOpen(true)}
               placeholder="Buscar producto o SKU en inventario... (Enter)"
               className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-[13px] text-slate-700 placeholder:text-slate-400 outline-none transition focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100"
             />
           </div>
+
+          {suggestionsOpen && query.trim() && (
+            <div className="absolute left-0 top-full z-30 mt-1.5 w-full max-w-md overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10">
+              {suggestions.length === 0 && (
+                <p className="px-3.5 py-3 text-[12.5px] text-slate-400">
+                  Sin coincidencias. Enter para ver todos los resultados.
+                </p>
+              )}
+              {suggestions.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => goToProduct(p)}
+                  className="flex w-full items-center justify-between gap-3 px-3.5 py-2 text-left hover:bg-slate-50"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13px] font-medium text-slate-800">
+                      {p.name}
+                    </span>
+                    <span className="block font-mono text-[11.5px] text-slate-400">{p.sku}</span>
+                  </span>
+                  <span className="shrink-0 text-[11.5px] text-slate-400">
+                    Stock: {p.stock}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </form>
 
         <div className="ml-auto flex items-center gap-2.5 sm:gap-3">
@@ -73,7 +140,7 @@ export default function Header({ onOpenSidebar, title, subtitle, onNewOrder }) {
 
           <div className="hidden items-center gap-2 md:flex">
             <button
-              onClick={() => navigate("/inventario")}
+              onClick={onRestock}
               className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] font-medium text-slate-600 hover:bg-slate-50"
             >
               <Package className="h-4 w-4" />

@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import NewOrderModal from "./NewOrderModal";
+import RestockModal from "./RestockModal";
 import { Plus, Package } from "lucide-react";
 
 const titles = {
@@ -39,6 +40,8 @@ const titles = {
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [newOrderOpen, setNewOrderOpen] = useState(false);
+  const [restockOpen, setRestockOpen] = useState(false);
+  const [dirty, setDirty] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const base = "/" + location.pathname.split("/")[1];
@@ -53,6 +56,14 @@ export default function Layout() {
     }
   }
 
+  function handleRestockClose() {
+    setRestockOpen(false);
+    if (dirty && (location.pathname === "/inventario" || location.pathname === "/")) {
+      navigate(0);
+    }
+    setDirty(false);
+  }
+
   return (
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -63,6 +74,7 @@ export default function Layout() {
           title={meta.title}
           subtitle={meta.subtitle}
           onNewOrder={() => setNewOrderOpen(true)}
+          onRestock={() => setRestockOpen(true)}
         />
 
         <main className="flex-1 space-y-6 px-4 py-6 sm:px-6 lg:px-8">
@@ -74,8 +86,13 @@ export default function Layout() {
         <NewOrderModal onClose={() => setNewOrderOpen(false)} onCreated={handleOrderCreated} />
       )}
 
+      {restockOpen && (
+        <RestockModal onClose={handleRestockClose} onChanged={() => setDirty(true)} />
+      )}
+
       <div className="fixed bottom-6 right-6 z-30 flex flex-col gap-2 md:hidden">
         <button
+          onClick={() => setRestockOpen(true)}
           className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-600 shadow-lg shadow-slate-900/15 ring-1 ring-slate-200"
           aria-label="Reabastecer stock"
         >
